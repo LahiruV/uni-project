@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { GraduationCap, BookOpen, Users, Globe, Heart, Mail, Phone, MapPin } from 'lucide-react'
 
 export function Footer() {
@@ -56,6 +57,9 @@ export function Footer() {
               </li>
               <li>
                 <a href="/housing" className="text-gray-600 hover:text-yellow-500">Housing</a>
+              </li>
+              <li>
+                <Link to="/admin/login" className="text-gray-600 hover:text-yellow-500">Admin Portal</Link>
               </li>
             </ul>
           </div>

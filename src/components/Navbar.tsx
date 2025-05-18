@@ -38,6 +38,9 @@ export function Navbar() {
                 <Link to="/chatbot" className={`${location.pathname === '/chatbot' ? 'text-yellow-500' : 'text-gray-700 hover:text-yellow-500'}`}>
                   Chat
                 </Link>
+                <Link to="/inquiry" className={`${location.pathname === '/inquiry' ? 'text-yellow-500' : 'text-gray-700 hover:text-yellow-500'}`}>
+                  Inquiry
+                </Link>
               </>
             )}
             {!isAuthenticated ? (
@@ -94,6 +97,12 @@ export function Navbar() {
                     className={`block px-3 py-2 ${isActive('/chatbot')}`}
                   >
                     Chat
+                  </Link>
+                  <Link
+                    to="/inquiry"
+                    className={`block px-3 py-2 ${isActive('/inquiry')}`}
+                  >
+                    Inquiry
                   </Link>
                 </>
               )}

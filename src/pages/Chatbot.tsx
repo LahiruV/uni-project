@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Layout } from '../components/Layout'
 import { Send, Bot, User } from 'lucide-react'
+import { getChatResponse } from '../services/gemini'
 
 interface Message {
   id: number
@@ -20,31 +21,47 @@ export function Chatbot() {
   ])
   const [input, setInput] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
 
-    // Add user message
-    const userMessage: Message = {
+    setMessages(prev => [...prev, userMessage])
+    setInput('')
+
+    try {
+      // Show typing indicator
+      const typingMessage: Message = {
+        id: messages.length + 2,
+        text: "Typing...",
+        sender: 'bot',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, typingMessage])
+
+      // Get AI response
+      const aiResponse = await getChatResponse(input)
+      
+      // Replace typing indicator with actual response
+      setMessages(prev => prev.slice(0, -1).concat({
+        id: messages.length + 2,
+        text: aiResponse,
+        sender: 'bot',
+        timestamp: new Date()
+      }))
+    } catch (error) {
+      setMessages(prev => prev.slice(0, -1).concat({
+        id: messages.length + 2,
+        text: "Sorry, I encountered an error. Please try again.",
+        sender: 'bot',
+        timestamp: new Date()
+      }))
+    }
+  }
+  const userMessage: Message = {
       id: messages.length + 1,
       text: input,
       sender: 'user',
       timestamp: new Date()
-    }
-    
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
-
-    // Simulate bot response
-    setTimeout(() => {
-      const botMessage: Message = {
-        id: messages.length + 2,
-        text: "Thanks for your message! This is a demo response.",
-        sender: 'bot',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, botMessage])
-    }, 1000)
   }
 
   return (
