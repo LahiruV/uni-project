@@ -1,0 +1,23 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NODE SQL</title>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Application loaded successfully!');
+            if (!document.getElementById('root').hasChildNodes()) {
+                document.getElementById('root').innerHTML = '<h1>Application is running!</h1>';
+            }
+        });
+    </script>
+</body>
+
+</html>
