@@ -2,32 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { Layout } from '../components/Layout'
 import { Send, BookOpen, Loader2, Clock, CheckCircle, Edit, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import type { Inquiry } from '../services/types'
-import { getUser } from '../services/api'
-
-const mockInquiries: Inquiry[] = [
-  {
-    id: '1',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john@example.com',
-    phone: '0412345678',
-    program: 'Computer Science',
-    startDate: '2024-07-01',
-    priority: 'high',
-    message: 'Interested in AI specialization',
-    status: 'pending',
-    createdAt: new Date('2024-03-15'),
-    userId: 'user123'
-  }
-]
+import type { Inquiry as InquiryType } from '../services/types'
+import { getUser, getInquiries, createInquiry, updateInquiry, completeInquiry } from '../services/api'
 
 export function Inquiry() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingInquiry, setEditingInquiry] = useState<string | null>(null)
-  const [userInquiries, setUserInquiries] = useState<Inquiry[]>([])
+  const [userInquiries, setUserInquiries] = useState<InquiryType[]>([])
   const [user, setUser] = useState<any>(null)
   const [formData, setFormData] = useState({
     firstName: '',
@@ -43,54 +26,72 @@ export function Inquiry() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      await getUser()
-      setUserInquiries(mockInquiries)
+      try {
+        const userData = await getUser()
+        const inquiriesResponse = await getInquiries()
+        setUserInquiries(inquiriesResponse.inquiries)
+        setUser(userData)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
     }
 
     fetchUserData()
-    setUserInquiries(mockInquiries)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    if (editingInquiry) {
-      // Update existing inquiry
-      const updatedInquiries = userInquiries.map(inquiry =>
-        inquiry.id === editingInquiry
-          ? { ...inquiry, ...formData }
-          : inquiry
-      )
-      setUserInquiries(updatedInquiries)
-      setEditingInquiry(null)
-    } else {
-      // Create new inquiry
-      const newInquiry: Inquiry = {
-        id: Date.now().toString(),
-        ...formData,
-        status: 'pending',
-        createdAt: new Date(),
-        userId: 'user123', // In real app, get from auth context
-        email: 'user@example.com' // In real app, get from auth context
+    try {
+      if (editingInquiry) {
+        const updatedInquiry = await updateInquiry(editingInquiry, formData)
+        setUserInquiries(prev =>
+          prev.map(inquiry =>
+            inquiry.id === editingInquiry ? updatedInquiry : inquiry
+          )
+        )
+        setEditingInquiry(null)
+      } else {
+        const newInquiry = await createInquiry({
+          ...formData,
+          userId: user.id,
+          email: user.email
+        })
+        setUserInquiries(prev => [...prev, newInquiry])
       }
-      setUserInquiries([...userInquiries, newInquiry])
-    }
 
-    setSuccess(true)
-    setLoading(false)
-    setShowForm(false)
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      program: '',
-      startDate: '',
-      message: ''
-    })
+      setSuccess(true)
+      setShowForm(false)
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        program: '',
+        startDate: '',
+        priority: '',
+        message: ''
+      })
+    } catch (error) {
+      console.error('Error submitting inquiry:', error)
+      setSuccess(false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleComplete = async (id: string) => {
+    try {
+      const completedInquiry = await completeInquiry(id)
+      setUserInquiries(prev =>
+        prev.map(inquiry =>
+          inquiry.id === id ? completedInquiry : inquiry
+        )
+      )
+    } catch (error) {
+      console.error('Error completing inquiry:', error)
+    }
   }
 
   const handleEdit = (inquiry: Inquiry) => {

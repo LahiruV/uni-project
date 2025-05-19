@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Layout } from '../components/Layout'
 import { Inbox, MessageSquare, Trash2, RefreshCw, CheckCircle } from 'lucide-react'
-import { deleteFeedback, deleteInquiry, getFeedbacks, getInquiries } from '../services/api'
+import { deleteFeedback, deleteInquiry, getFeedbacks, getInquiries, completeInquiry } from '../services/api'
 
 interface FeedbackItem {
   id: string
@@ -26,32 +26,32 @@ interface InquiryItem {
   status: string
 }
 
-
-
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'feedback' | 'inquiries'>('feedback')
   const [loading, setLoading] = useState(false)
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([])
   const [inquiries, setInquiries] = useState<InquiryItem[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-
+  const fetchFeedback = async () => {
+    try {
+      const response = await getFeedbacks()
+      setFeedbacks(response.feedbacks)
+    } catch (error) {
+      console.error('Error fetching feedback:', error)
+      setError('Failed to fetch feedback')
+    }
+  }
+  const fetchInquiries = async () => {
+    try {
+      const response = await getInquiries()
+      setInquiries(response.inquiries)
+    } catch (error) {
+      console.error('Error fetching inquiries:', error)
+      setError('Failed to fetch inquiries')
+    }
+  }
   useEffect(() => {
-    const fetchFeedback = async () => {
-      try {
-        const response = await getFeedbacks()
-        setFeedbacks(response.feedbacks)
-      } catch (error) {
-        console.error('Error fetching feedback:', error)
-      }
-    }
-    const fetchInquiries = async () => {
-      try {
-        const response = await getInquiries()
-        setInquiries(response.inquiries)
-      } catch (error) {
-        console.error('Error fetching inquiries:', error)
-      }
-    }
     fetchInquiries()
     fetchFeedback()
   }, [])
@@ -60,29 +60,42 @@ export function AdminDashboard() {
     if (type === 'feedback') {
       try {
         await deleteFeedback(id)
-        const updatedFeedbacks = feedbacks.filter(item => item.id !== id)
-        setFeedbacks(updatedFeedbacks)
+        fetchFeedback()
       }
       catch (error) {
         console.error('Error deleting feedback:', error)
       }
     } else {
-      setInquiries(prev => prev.filter(item => item.id !== id))
+      try {
+        await deleteInquiry(id)
+        fetchInquiries()
+      }
+      catch (error) {
+        console.error('Error deleting inquiry:', error)
+      }
     }
   }
 
-  const handleComplete = (id: string) => {
-    const updatedInquiries = inquiries.map(inquiry =>
-      inquiry.id === id ? { ...inquiry, status: 'completed' } : inquiry
-    )
-    setInquiries(updatedInquiries)
+  const handleComplete = async (id: string) => {
+    try {
+      const completedInquiry = await completeInquiry(id)
+      const updatedInquiries = inquiries.map(inquiry =>
+        inquiry.id === id ? completedInquiry : inquiry
+      )
+      setInquiries(updatedInquiries)
+    } catch (error) {
+      console.error('Error completing inquiry:', error)
+      setError('Failed to complete inquiry')
+    }
   }
 
   const handleRefresh = async () => {
     setLoading(true)
-    // Simulate API call
+    fetchInquiries()
+    fetchFeedback()
     await new Promise(resolve => setTimeout(resolve, 1000))
     setLoading(false)
+    setError(null)
   }
 
   return (
@@ -101,6 +114,12 @@ export function AdminDashboard() {
                 Refresh
               </button>
             </div>
+
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
 
             <div className="mt-4 border-b border-gray-200">
               <nav className="-mb-px flex space-x-8">
