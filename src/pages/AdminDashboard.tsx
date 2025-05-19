@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Layout } from '../components/Layout'
 import { Inbox, MessageSquare, Trash2, RefreshCw, CheckCircle } from 'lucide-react'
+import { deleteFeedback, deleteInquiry, getFeedbacks, getInquiries } from '../services/api'
 
 interface FeedbackItem {
   id: string
@@ -25,71 +26,53 @@ interface InquiryItem {
   status: string
 }
 
-const initialFeedbacks: FeedbackItem[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    message: 'Great university experience!',
-    type: 'feedback',
-    createdAt: new Date('2024-03-15')
-  },
-  {
-    id: '2',
-    name: 'Sarah Smith',
-    email: 'sarah@example.com',
-    message: 'The library needs more study spaces',
-    type: 'feature',
-    createdAt: new Date('2024-03-14')
-  }
-]
 
-const initialInquiries: InquiryItem[] = [
-  {
-    id: '1',
-    firstName: 'Michael',
-    lastName: 'Brown',
-    email: 'michael@example.com',
-    phone: '0412345678',
-    program: 'Computer Science',
-    startDate: '2024-07-01',
-    priority: 'high',
-    status: 'pending',
-    message: 'Interested in the AI specialization',
-    createdAt: new Date('2024-03-15')
-  },
-  {
-    id: '2',
-    firstName: 'Emma',
-    lastName: 'Wilson',
-    email: 'emma@example.com',
-    phone: '0487654321',
-    program: 'Business Administration',
-    startDate: '2024-07-01',
-    priority: 'medium',
-    status: 'completed',
-    message: 'Looking for scholarship information',
-    createdAt: new Date('2024-03-14')
-  }
-]
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'feedback' | 'inquiries'>('feedback')
   const [loading, setLoading] = useState(false)
-  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>(initialFeedbacks)
-  const [inquiries, setInquiries] = useState<InquiryItem[]>(initialInquiries)
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([])
+  const [inquiries, setInquiries] = useState<InquiryItem[]>([])
 
-  const handleDelete = (id: string, type: 'feedback' | 'inquiry') => {
+
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const response = await getFeedbacks()
+        setFeedbacks(response.feedbacks)
+      } catch (error) {
+        console.error('Error fetching feedback:', error)
+      }
+    }
+    const fetchInquiries = async () => {
+      try {
+        const response = await getInquiries()
+        setInquiries(response.inquiries)
+      } catch (error) {
+        console.error('Error fetching inquiries:', error)
+      }
+    }
+    fetchInquiries()
+    fetchFeedback()
+  }, [])
+
+  const handleDelete = async (id: string, type: 'feedback' | 'inquiry') => {
     if (type === 'feedback') {
-      setFeedbacks(prev => prev.filter(item => item.id !== id))
+      try {
+        await deleteFeedback(id)
+        const updatedFeedbacks = feedbacks.filter(item => item.id !== id)
+        setFeedbacks(updatedFeedbacks)
+      }
+      catch (error) {
+        console.error('Error deleting feedback:', error)
+      }
     } else {
       setInquiries(prev => prev.filter(item => item.id !== id))
     }
   }
 
   const handleComplete = (id: string) => {
-    // In a real app, this would call an API
-    const updatedInquiries = inquiries.map(inquiry => 
+    const updatedInquiries = inquiries.map(inquiry =>
       inquiry.id === id ? { ...inquiry, status: 'completed' } : inquiry
     )
     setInquiries(updatedInquiries)
@@ -123,22 +106,20 @@ export function AdminDashboard() {
               <nav className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab('feedback')}
-                  className={`${
-                    activeTab === 'feedback'
-                      ? 'border-yellow-500 text-yellow-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                  className={`${activeTab === 'feedback'
+                    ? 'border-yellow-500 text-yellow-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
                 >
                   <MessageSquare className="h-5 w-5 mr-2" />
                   Feedback ({feedbacks.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('inquiries')}
-                  className={`${
-                    activeTab === 'inquiries'
-                      ? 'border-yellow-500 text-yellow-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                  className={`${activeTab === 'inquiries'
+                    ? 'border-yellow-500 text-yellow-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
                 >
                   <Inbox className="h-5 w-5 mr-2" />
                   Inquiries ({inquiries.length})
@@ -191,7 +172,7 @@ export function AdminDashboard() {
                         <p className="text-sm text-gray-500">{inquiry.phone}</p>
                       </div>
                       <button
-                        onClick={() => handleDelete(inquiry.id, 'inquiry')} 
+                        onClick={() => handleDelete(inquiry.id, 'inquiry')}
                         className="text-red-500 hover:text-red-700 ml-2"
                       >
                         <Trash2 className="h-5 w-5" />
@@ -211,21 +192,19 @@ export function AdminDashboard() {
                       <p className="text-gray-600">{inquiry.message}</p>
                     </div>
                     <div className="mt-4 flex justify-between items-center space-x-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        inquiry.priority === 'high'
-                          ? 'bg-red-100 text-red-800'
-                          : inquiry.priority === 'medium'
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${inquiry.priority === 'high'
+                        ? 'bg-red-100 text-red-800'
+                        : inquiry.priority === 'medium'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-green-100 text-green-800'
-                      }`}>
+                        }`}>
                         {inquiry.priority} priority
                       </span>
                       <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          inquiry.status === 'completed' 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${inquiry.status === 'completed'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                          }`}>
                           {inquiry.status === 'completed' ? 'Completed' : 'Pending'}
                         </span>
                         {inquiry.status === 'pending' && (

@@ -29,7 +29,9 @@ export function AdminRegister() {
       authLogin(token)
       navigate('/admin')
     } catch (err) {
-      setError('Registration failed. Please verify your admin code.')
+      console.log(err);
+
+      setError('Registration failed. Please verify your  Username and Password.')
     } finally {
       setLoading(false)
     }
@@ -103,7 +105,7 @@ export function AdminRegister() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label htmlFor="adminCode" className="block text-sm font-medium text-gray-700">
                   Admin Registration Code
                 </label>
@@ -115,7 +117,7 @@ export function AdminRegister() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 />
-              </div>
+              </div> */}
 
               <button
                 type="submit"

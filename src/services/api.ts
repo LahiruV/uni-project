@@ -1,7 +1,7 @@
 import { CreateFeedbackDto, Feedback, GetFeedbacksResponse, GetInquiriesResponse, Inquiry, UpdateInquiryDto } from './types'
 import type { LoginDto, RegisterDto, AdminLoginDto, AdminRegisterDto } from './types'
 
-const API_URL = '/api'
+const API_URL = 'http://localhost:3000/api'
 
 // Feedback API calls
 export async function getFeedbacks(): Promise<GetFeedbacksResponse> {
@@ -219,13 +219,6 @@ export async function adminLogin(credentials: AdminLoginDto): Promise<{ token: s
 }
 
 export async function adminRegister(data: AdminRegisterDto): Promise<{ token: string }> {
-  // Default admin registration for testing
-  if (data.adminCode === 'DEAKIN2024') {
-    return {
-      token: 'new-admin-token'
-    }
-  }
-
   const response = await fetch(`${API_URL}/auth/admin/register`, {
     method: 'POST',
     headers: {
@@ -236,6 +229,20 @@ export async function adminRegister(data: AdminRegisterDto): Promise<{ token: st
 
   if (!response.ok) {
     throw new Error('Admin registration failed')
+  }
+
+  return response.json()
+}
+
+export async function getUser(): Promise<{ token: string }> {
+  const response = await fetch(`${API_URL}/auth/me`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user')
   }
 
   return response.json()

@@ -1,8 +1,9 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 import { Hero } from '../components/Hero'
 import { Layout } from '../components/Layout'
 import { MessageSquare } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { getFeedbacks } from '../services/api'
 
 interface FeedbackItem {
   id: string
@@ -12,35 +13,26 @@ interface FeedbackItem {
   createdAt: Date
 }
 
-const feedbackData: FeedbackItem[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    message: 'The campus facilities are excellent! Really enjoying my time here.',
-    type: 'feedback',
-    createdAt: new Date('2024-03-15')
-  },
-  {
-    id: '2',
-    name: 'Sarah Smith',
-    message: 'The professors are very knowledgeable and supportive.',
-    type: 'feedback',
-    createdAt: new Date('2024-03-14')
-  },
-  {
-    id: '3',
-    name: 'Michael Brown',
-    message: 'Great learning environment and resources available.',
-    type: 'feedback',
-    createdAt: new Date('2024-03-13')
-  }
-]
-
 export function Home() {
+  const [feedbackData, setFeedbackData] = useState<FeedbackItem[]>([])
+  const [totalFeedback, setTotalFeedback] = useState<number>(0)
+
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const response = await getFeedbacks()
+        setFeedbackData(response.feedbacks)
+        setTotalFeedback(response.total)
+      } catch (error) {
+        console.error('Error fetching feedback:', error)
+      }
+    }
+
+    fetchFeedback()
+  }, [])
   return (
     <Layout>
       <Hero />
-      
       {/* Feedback Section */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,7 +51,7 @@ export function Home() {
               Hear what our students have to say about their experience at Deakin University.
             </p>
           </motion.div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {feedbackData.map((feedback) => (
               <motion.div

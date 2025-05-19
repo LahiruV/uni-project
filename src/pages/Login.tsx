@@ -13,8 +13,8 @@ export function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<LoginDto>({
-    email: 'admin@gmail.com',
-    password: 'admin',
+    email: '',
+    password: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,18 +36,18 @@ export function Login() {
 
   return (
     <Layout showNavigation={false}>
-        <AuthHeader />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex">
-            <div className="hidden lg:block lg:w-1/2 relative">
-              <img
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=2070"
-                alt="University library"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            </div>
-            <div className="w-full lg:w-1/2 p-8">
+      <AuthHeader />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex">
+          <div className="hidden lg:block lg:w-1/2 relative">
+            <img
+              src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=2070"
+              alt="University library"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          </div>
+          <div className="w-full lg:w-1/2 p-8">
             <div className="flex items-center justify-center space-x-3 mb-8">
               <LogIn className="h-8 w-8 text-yellow-500" />
               <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
@@ -112,9 +112,9 @@ export function Login() {
                 </Link>
               </p>
             </div>
-            </div>
           </div>
         </div>
+      </div>
     </Layout>
   )
 }
